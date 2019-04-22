@@ -1,121 +1,68 @@
 <template>
   <div class="flexbox">
     <div>
-      <h1>Vue CryptoCompare Api Guide</h1>
-    </div>
-    <div class="padding">
-      <table class="style position">
+<!--      <h1>{{ USD }}</h1>-->
+
+      <table>
         <tr>
-          <th>Type</th>
-          <th>MARKET</th>
-          <th>FROMSYMBOL</th>
-          <th>TOSYMBOL</th>
-          <th>image</th>
+          <th>Image</th>
+          <th>Full Name</th>
+          <th>Name</th>
+          <th>PRICE</th>
+          <th>SUPPLY</th>
         </tr>
-        <tr>
-          <td>{{USD.TYPE}}</td>
-          <td>{{USD.MARKET}}</td>
-          <td>{{USD.FROMSYMBOL}}</td>
-          <td>{{USD.TOSYMBOL}}</td>
-          <td>
-            <img v-bind:src="USDimg">
-          </td>
-        </tr>
-        <tr>
-          <td>{{USD.TYPE}}</td>
-          <td>{{USD.MARKET}}</td>
-          <td>{{USD.FROMSYMBOL}}</td>
-          <td>{{USD.TOSYMBOL}}</td>
-          <td>
-            <img v-bind:src="USDimg">
-          </td>
+        <tr v-for="(coin, index) in all_coins" :key="index">
+          <td><img :src="'https://www.cryptocompare.com' + coin.CoinInfo.ImageUrl + '?width=30'" alt=""></td>
+          <td>{{coin.CoinInfo.FullName}}</td>
+          <td>{{coin.CoinInfo.Name}}</td>
+          <td>{{coin.RAW.USD.PRICE}}</td>
+          <td>{{coin.RAW.USD.SUPPLY}}</td>
         </tr>
       </table>
-    </div>
-    <div>
-      <button v-on:click="getData">Get Data</button>
-      <div class="padding">
-        <tableComponent v-if="ok" v-bind:exchangeInfo="VOLUME" ></tableComponent>
-      </div>
+
     </div>
   </div>
 </template>
 
 <script>
 const axios = require("axios");
-import tableComponent from './table'
-const getFullURL = function(url, options) {
-  const params = [];
-  for (let key in options) {
-    params.push(`${key}=${options[key]}`);
-  }
-  return url + "?" + params.join("&");
-};
-const apiKey = "";
-const baseUrl = "https://min-api.cryptocompare.com/data/pricemultifull";
-const options = {
-  fsyms: "BTC,ETH",
-  tsyms: "USD"
-};
-const headers = {
-  "Authorization": "Apikey " + apiKey
-};
-const fullURL = getFullURL(baseUrl, options);
 export default {
-  name: "HelloWorld",
-  components: {tableComponent},
+  name: "Crypto",
   data: function() {
     return {
-      USD: "",
-      USDimg: "",
-      VOLUME: [],
-      test:"hello",
-      ok: false
+      crypto: [],
+      all_coins: []
     };
   },
-  mounted() {
+  async created() {
     this.getData()
-    axios
-      .get(fullURL, { headers: headers })
-      .then(
-        response => (
-          (this.USD = response.data.RAW.BTC.USD),
-            // console.log('LOG >>> ', response),
-            (this.USDimg =
-              "https://www.cryptocompare.com" +
-              response.data.RAW.BTC.USD.IMAGEURL +
-              "?width=50")
-        )
-      );
+     await setInterval(() => this.getData(), 300000)
   },
   methods: {
-    setOkTrue: function() {
-      this.ok = true;
+    sort(a, b) {
+      return b.RAW.USD.PRICE - a.RAW.USD.PRICE
     },
-    getData: function() {
-      axios.get("https://min-api.cryptocompare.com/data/top/mktcapfull?limit=20&tsym=USD").then(
-        response => (console.log('LOG >>> ', response)),
-        this.setOkTrue())
+    async getData() {
+      this.all_coins = []
+      await axios.get("https://min-api.cryptocompare.com/data/top/mktcapfull?limit=20&tsym=USD").then(
+        response => (this.crypto = response.data.Data));
+      if(this.crypto.length > 0) {
+        this.crypto.forEach(item => {
+          this.all_coins.push(item);
+          return this.all_coins
+        });
+      }
+
+      this.all_coins = this.all_coins.sort(this.sort);
+
+
     }
   }
 };
 </script>
 
-<!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped>
-  .style {
-    background-color: rgb(73, 216, 124);
-    color: white;
+<style scoped l>
+  td, th {
     border: 1px solid black;
-  }
-  .position {
-    margin: auto;
-  }
-  .flexbox {
-    display: flex;
-    flex-direction: column;
-  }
-  .padding {
-    padding: 50px;
   }
 </style>

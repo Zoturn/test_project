@@ -1,17 +1,17 @@
 <template>
   <div id="app">
 
-    <HelloWorld/>
+    <Crypto/>
   </div>
 </template>
 
 <script>
-import HelloWorld from './components/CCAPIExample'
+import Crypto from './components/CCAPIExample'
 
 export default {
   name: 'app',
   components: {
-    HelloWorld
+    Crypto
   }
 }
 </script>
